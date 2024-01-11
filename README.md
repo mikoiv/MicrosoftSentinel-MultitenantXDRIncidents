@@ -11,7 +11,7 @@ Logic App ARM template. Following customisations needed:
 - Set DCE URL, Stream name and DCR ImmutableId in action **HTTP POST to Azure Data Collection Endpoint**.
 - Grant the Logic App Managed Identity **Monitoring Metrics Publisher** permissions to your Azure Data Collection Rule.
 
-If you use this as a base for some production deployment, consider these:
+If you use this as a base for any kind of production deployment:
 
 - Move the App Registration secrets to Key Vault.
 - You want to add a new action before **HTTP POST to Azure Data Collection Endpoint**, to check that the parsed incident ID does not already exist in the table! Otherwise **you will get duplicates** whenever this runs again.
