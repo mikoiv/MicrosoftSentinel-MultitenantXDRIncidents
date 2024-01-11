@@ -15,7 +15,7 @@ If you use this as a base for any kind of production deployment:
 
 - Move the App Registration secrets to Key Vault.
 - You want to add a new action before **HTTP POST to Azure Data Collection Endpoint**, to check that the parsed incident ID does not already exist in the table! Otherwise **you will get duplicates** whenever this runs again.
-- You may want to have all of the metadata defined in variables, now I just pull them straight out of the get incidents output.
+- You may want to have all of the metadata defined in variables, now I just pull them straight out of the incident query output.
 
 ## sample-dcr.json & createTable.ps1
 
