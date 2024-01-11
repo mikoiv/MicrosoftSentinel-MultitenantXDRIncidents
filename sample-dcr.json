@@ -36,30 +36,42 @@
             "properties": {
                 "dataCollectionEndpointId": "[parameters('endpointResourceId')]",
                 "streamDeclarations": {
-                    "Custom-XDRIncidents": {
+                    "Custom-CustomerIncidents": {
                         "columns": [
                             {
                                 "name": "TimeGenerated",
                                 "type": "datetime"
                             },
                             {
-                                "name": "SourceTenant",
+                                "name": "CustomerTenant",
+                                "type": "string"
+                            },
+                            {
+                                "name": "CustomerName",
+                                "type": "string"
+                            },
+                            {
+                                "name": "DetectionSource",
                                 "type": "string"
                             },
                             {
                                 "name": "IncidentId",
-                                "type": "int"
-                            },
-                            {
-                                "name": "IncidentName",
                                 "type": "string"
                             },
                             {
-                                "name": "IncidentSeverity",
+                                "name": "RedirectIncidentId",
                                 "type": "string"
                             },
                             {
-                                "name": "IncidentUri",
+                                "name": "DisplayName",
+                                "type": "string"
+                            },
+                            {
+                                "name": "Severity",
+                                "type": "string"
+                            },
+                            {
+                                "name": "IncidentWebUrl",
                                 "type": "string"
                             },
                             {
@@ -85,13 +97,13 @@
                 "dataFlows": [
                     {
                         "streams": [
-                            "Custom-XDRIncidents"
+                            "Custom-CustomerIncidents"
                         ],
                         "destinations": [
                             "myworkspace"
                         ],
                         "transformKql": "source",
-                        "outputStream": "Custom-ExternalSecurityIncidents_CL"
+                        "outputStream": "Custom-CustomerIncidents_CL"
                     }
                 ]
             }
