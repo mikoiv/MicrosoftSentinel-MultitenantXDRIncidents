@@ -3,7 +3,7 @@
     "contentVersion":  "1.0.0.0",
     "parameters":  {
         "PlaybookName":  {
-            "defaultValue":  "LA-XDR-CustomerIncidents-dev",
+            "defaultValue":  "LA-XDR-Incidents-Customer1-dev",
             "type":  "string"
         }
     },
