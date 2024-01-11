@@ -1,0 +1,264 @@
+{
+    "$schema":  "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion":  "1.0.0.0",
+    "parameters":  {
+        "PlaybookName":  {
+            "defaultValue":  "LA-XDR-CustomerIncidents-dev",
+            "type":  "string"
+        }
+    },
+    "variables":  {
+    },
+    "resources":  [
+        {
+            "properties":  {
+                "provisioningState":  "Succeeded",
+                "state":  "Enabled",
+                "definition":  {
+                    "$schema":  "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion":  "1.0.0.0",
+                    "parameters":  {
+                    },
+                    "triggers":  {
+                        "Recurrence":  {
+                            "recurrence":  {
+                                "frequency":  "Hour",
+                                "interval":  1
+                            },
+                            "evaluatedRecurrence":  {
+                                "frequency":  "Hour",
+                                "interval":  1
+                            },
+                            "type":  "Recurrence"
+                        }
+                    },
+                    "actions":  {
+                        "For_each_Incident":  {
+                            "foreach":  "@body('Parse_JSON_from_HTTP_GET_Defender_Incidents')?['value']",
+                            "actions":  {
+                                "HTTP_POST_to_Azure_Data_Collection_Endpoint":  {
+                                    "runAfter":  {
+                                    },
+                                    "type":  "Http",
+                                    "inputs":  {
+                                        "authentication":  {
+                                            "audience":  "https://monitor.azure.com",
+                                            "type":  "ManagedServiceIdentity"
+                                        },
+                                        "body":  [
+                                            {
+                                                "CustomerName":  "@{variables('Customer')}",
+                                                "CustomerTenant":  "@{items('For_each_Incident')?['tenantId']}",
+                                                "DisplayName":  "@{items('For_each_Incident')?['displayName']}",
+                                                "IncidentCreatedTime":  "@{items('For_each_Incident')?['createdDateTime']}",
+                                                "IncidentId":  "@{items('For_each_Incident')?['id']}",
+                                                "IncidentWebUrl":  "@{items('For_each_Incident')?['incidentWebUrl']}",
+                                                "RedirectIncidentId":  "@{items('For_each_Incident')?['redirectIncidentId']}",
+                                                "Severity":  "@{items('For_each_Incident')?['severity']}",
+                                                "TimeGenerated":  "@{formatDateTime(utcNow(), 'yyyy-MM-dd HH:mm:ss')}"
+                                            }
+                                        ],
+                                        "headers":  {
+                                            "Content-Type":  "application/json"
+                                        },
+                                        "method":  "POST",
+                                        "uri":  "https://DCE-URL.ingest.monitor.azure.com/dataCollectionRules/DCR-IMMUTABLEID/streams/Custom-STREAM?api-version=2023-01-01"
+                                    }
+                                }
+                            },
+                            "runAfter":  {
+                                "Parse_JSON_from_HTTP_GET_Defender_Incidents":  [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type":  "Foreach"
+                        },
+                        "HTTP_GET_Defender_Incidents":  {
+                            "runAfter":  {
+                                "Initialize_variable_Customer":  [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type":  "Http",
+                            "inputs":  {
+                                "authentication":  {
+                                    "audience":  "https://graph.microsoft.com",
+                                    "clientId":  "APP-REG-CLIENT-ID",
+                                    "secret":  "APP-REG-CLIENT-SECRET",
+                                    "tenant":  "TARGET-TENANT-ID",
+                                    "type":  "ActiveDirectoryOAuth"
+                                },
+                                "method":  "GET",
+                                "queries":  {
+                                    "$filter":  "status eq 'Active'"
+                                },
+                                "uri":  "https://graph.microsoft.com/v1.0/security/incidents"
+                            }
+                        },
+                        "Initialize_variable_Customer":  {
+                            "runAfter":  {
+                            },
+                            "type":  "InitializeVariable",
+                            "inputs":  {
+                                "variables":  [
+                                    {
+                                        "name":  "Customer",
+                                        "type":  "string",
+                                        "value":  "CUSTOMER-NAME"
+                                    }
+                                ]
+                            }
+                        },
+                        "Parse_JSON_from_HTTP_GET_Defender_Incidents":  {
+                            "runAfter":  {
+                                "HTTP_GET_Defender_Incidents":  [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type":  "ParseJson",
+                            "inputs":  {
+                                "content":  "@body('HTTP_GET_Defender_Incidents')",
+                                "schema":  {
+                                    "properties":  {
+                                        "body":  {
+                                            "properties":  {
+                                                "@@odata.context":  {
+                                                    "type":  "string"
+                                                },
+                                                "value":  {
+                                                    "items":  {
+                                                        "properties":  {
+                                                            "assignedTo":  {
+                                                            },
+                                                            "classification":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "comments":  {
+                                                                "type":  "array"
+                                                            },
+                                                            "createdDateTime":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "customTags":  {
+                                                                "type":  "array"
+                                                            },
+                                                            "description":  {
+                                                            },
+                                                            "determination":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "displayName":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "id":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "incidentWebUrl":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "lastModifiedBy":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "lastUpdateDateTime":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "redirectIncidentId":  {
+                                                            },
+                                                            "severity":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "status":  {
+                                                                "type":  "string"
+                                                            },
+                                                            "systemTags":  {
+                                                                "type":  "array"
+                                                            },
+                                                            "tenantId":  {
+                                                                "type":  "string"
+                                                            }
+                                                        },
+                                                        "required":  [
+                                                            "id",
+                                                            "tenantId",
+                                                            "status",
+                                                            "incidentWebUrl",
+                                                            "redirectIncidentId",
+                                                            "displayName",
+                                                            "createdDateTime",
+                                                            "lastUpdateDateTime",
+                                                            "assignedTo",
+                                                            "classification",
+                                                            "determination",
+                                                            "severity",
+                                                            "customTags",
+                                                            "systemTags",
+                                                            "description",
+                                                            "lastModifiedBy",
+                                                            "comments"
+                                                        ],
+                                                        "type":  "object"
+                                                    },
+                                                    "type":  "array"
+                                                }
+                                            },
+                                            "type":  "object"
+                                        },
+                                        "headers":  {
+                                            "properties":  {
+                                                "Content-Type":  {
+                                                    "type":  "string"
+                                                },
+                                                "Date":  {
+                                                    "type":  "string"
+                                                },
+                                                "OData-Version":  {
+                                                    "type":  "string"
+                                                },
+                                                "Strict-Transport-Security":  {
+                                                    "type":  "string"
+                                                },
+                                                "Transfer-Encoding":  {
+                                                    "type":  "string"
+                                                },
+                                                "Vary":  {
+                                                    "type":  "string"
+                                                },
+                                                "client-request-id":  {
+                                                    "type":  "string"
+                                                },
+                                                "request-id":  {
+                                                    "type":  "string"
+                                                },
+                                                "x-ms-ags-diagnostic":  {
+                                                    "type":  "string"
+                                                }
+                                            },
+                                            "type":  "object"
+                                        },
+                                        "statusCode":  {
+                                            "type":  "integer"
+                                        }
+                                    },
+                                    "type":  "object"
+                                }
+                            }
+                        }
+                    },
+                    "outputs":  {
+                    }
+                },
+                "parameters":  {
+                }
+            },
+            "name":  "[parameters('PlaybookName')]",
+            "type":  "Microsoft.Logic/workflows",
+            "location":  "[resourceGroup().location]",
+            "identity":  {
+                "type":  "SystemAssigned"
+            },
+            "apiVersion":  "2017-07-01",
+            "dependsOn":  [
+            ]
+        }
+    ]
+}
